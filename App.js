@@ -10,7 +10,7 @@ io.on("connection", socket =>{
         console.log("sombody joined " +rooms)
     })
     socket.on("disconnect", ()=>console.log(socket.id + " got disconnected"))
-    socket.on("AUGMENT", (enchere, user)=>{
+    socket.on("AUGMENT", (enchere, user, newPrice)=>{
         socket.to(enchere).emit("NEW_PRICE",enchere, user)
         console.log("emit sent "+enchere )
     })
