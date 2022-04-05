@@ -10,11 +10,16 @@ io.on("connection", socket =>{
         console.log("sombody joined " +rooms)
     })
     socket.on("disconnect", ()=>console.log(socket.id + " got disconnected"))
-    socket.on("AUGMENT", (enchere, user, newPrice)=>{
-        socket.to(enchere).emit("NEW_PRICE",enchere, user)
-        console.log("emit sent "+enchere )
+    socket.on("AUGMENT", (enchere, user, newPrice,initPrice)=>{
+        socket.to(enchere.concat('LOCAL')).emit("NEW_PRICE",enchere, user , newPrice, initPrice) 
+        console.log("emit sent "+enchere.concat('LOCAL') )
+        
     })
-    socket.on("leave-room", enchere=>{socket.leave(enchere)
-    console.log("room left " + enchere)
+    socket.on("REDUCT", (enchere, user, newPrice, initPrice)=>{
+        socket.to(enchere.concat('LOCAL')).emit("NEW_PRICE",enchere, user,  newPrice, initPrice)
+        console.log("emit sent "+enchere.concat('LOCAL') )
+    })
+    socket.on("leave-room", enchere=>{socket.leave(enchere.concat('LOCAL'))
+    console.log(enchere.concat('LOCAL')+ "left")
     })
 })
