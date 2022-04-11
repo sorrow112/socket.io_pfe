@@ -29,26 +29,29 @@ io.on("connection", socket =>{
         }).then(response=>response["data"]["hydra:member"].map(surveille=>{
             if(type==="enchereInverse"){
                 axios.post("http://127.0.0.1:8000/api/notifications",{
-                    surveille: surveille["@id"],
+                    user: surveille["user"]["@id"],
                     title:`reduction ${enchere}`,
-                    description: `${user} a réduit le prix de ${surveille.enchereInverse.article.name} jusqu'a ${newPrice}`
+                    description: `${user} a réduit le prix de ${surveille.enchereInverse.article.name} jusqu'a ${newPrice}`,
+                    date: new Date()
                 }).then(response=>
                     {
                         console.log("notification created successfully")
                         socket.to(enchere.concat('LOCAL')).emit("NEW_PRICE",enchere, user , newPrice, initPrice) 
-                        socket.emit("NOTIFICATION",response["data"]) 
+                        //TODO DISPLAY REAL TIME NOTIFICATION
+                        socket.to(enchere).emit("NOTIFICATION",response["data"]) 
                     }
                 ).catch(err=>console.log(err))
             }
             else{
                 axios.post("http://127.0.0.1:8000/api/notifications",{
-                    surveille: surveille["@id"],
+                    user: surveille["user"]["@id"],
                     description: `${user} a augmenté le prix de ${surveille.enchere.article.name} jusqu'a ${newPrice}`,
-                    title:`augmentation ${enchere}`
+                    title:`augmentation ${enchere}`,
+                    date: new Date()
                 }).then(response=>{
                     console.log("notification created successfully")
                     socket.to(enchere.concat('LOCAL')).emit("NEW_PRICE",enchere, user , newPrice, initPrice) 
-                    socket.emit("NOTIFICATION",response["data"]) 
+                    socket.to(enchere).emit("NOTIFICATION",response["data"]) 
                 }
                 ).catch(err=>console.log(err))
             }
