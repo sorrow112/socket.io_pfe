@@ -32,7 +32,9 @@ io.on("connection", socket =>{
                     user: surveille["user"]["@id"],
                     title:`reduction ${enchere}`,
                     description: `${user} a réduit le prix de ${surveille.enchereInverse.article.name} jusqu'a ${newPrice}`,
-                    date: new Date()
+                    date: new Date(),
+                    route: surveille.enchereInverse.id,
+                    type:"enchereInverse"
                 }).then(response=>
                     {
                         console.log("notification created successfully")
@@ -47,11 +49,14 @@ io.on("connection", socket =>{
                     user: surveille["user"]["@id"],
                     description: `${user} a augmenté le prix de ${surveille.enchere.article.name} jusqu'a ${newPrice}`,
                     title:`augmentation ${enchere}`,
-                    date: new Date()
+                    date: new Date(),
+                    route: surveille.enchere.id,
+                    type:"enchere"
                 }).then(response=>{
                     console.log("notification created successfully")
                     socket.to(enchere.concat('LOCAL')).emit("NEW_PRICE",enchere, user , newPrice, initPrice) 
                     socket.to(enchere).emit("NOTIFICATION",response["data"]) 
+
                 }
                 ).catch(err=>console.log(err))
             }
