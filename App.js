@@ -13,6 +13,39 @@ io.on("connection", socket =>{
         
     })
     socket.on("disconnect", ()=>console.log(socket.id + " got disconnected"))
+    socket.on("DEMANDE",(demande,user)=>{
+        axios.post("http://127.0.0.1:8000/api/notifications",{
+                    user: `/api/users/${user}`,
+                    title:`demande ${demande["@id"]}`,
+                    description: `${demande.transmitter.displayName} vous a envoyé une demande de devis`,
+                    date: new Date(),
+                    route: `/demande_devis/${demande.id}`,
+                    type:"demande_devis"
+                }).then(response=>
+                    {
+                        console.log("notification de demande created successfully")
+                        console.log(user)
+                        socket.to(user+"USER").emit("NOTIFICATION",response["data"]) 
+                    }
+                ).catch(err=>console.log(err))
+    })
+    socket.on("PROPOSITION",(proposition)=>{
+        axios.post("http://127.0.0.1:8000/api/notifications",{
+                    user: proposition.transmittedTo["@id"],
+                    title:`proposition ${proposition["@id"]}`,
+                    description: `${proposition.transmitter.displayName} vous a envoyé une proposition de devis`,
+                    date: new Date(),
+                    route: `/enchere/${proposition.enchere.replace('/api/encheres/', '')}`,
+                    type:"proposition"
+                }).then(response=>
+                    {
+                        console.log("notification de proposition created successfully")
+                        console.log()
+                        socket.to(proposition.transmittedTo.id+"USER").emit("NOTIFICATION",response["data"]) 
+                    }
+                ).catch(err=>console.log(err))
+ 
+    })
     socket.on("AUGMENT", (enchere, user, newPrice,initPrice)=>{
         
         console.log("emit sent "+enchere.concat('LOCAL'))
@@ -21,19 +54,21 @@ io.on("connection", socket =>{
             type="enchereInverse";
         }else{
             type="enchere"
+            
         }
         axios.get(`http://127.0.0.1:8000/api/surveilles`,{
             params:{
                 [type]: enchere
             }
         }).then(response=>response["data"]["hydra:member"].map(surveille=>{
+            console.log("hey")
             if(type==="enchereInverse"){
                 axios.post("http://127.0.0.1:8000/api/notifications",{
                     user: surveille["user"]["@id"],
                     title:`reduction ${enchere}`,
                     description: `${user} a réduit le prix de ${surveille.enchereInverse.article.name} jusqu'a ${newPrice}`,
                     date: new Date(),
-                    route: surveille.enchereInverse.id,
+                    route: `/enchereInverse/${surveille.enchereInverse.id}`,
                     type:"enchereInverse"
                 }).then(response=>
                     {
@@ -50,7 +85,7 @@ io.on("connection", socket =>{
                     description: `${user} a augmenté le prix de ${surveille.enchere.article.name} jusqu'a ${newPrice}`,
                     title:`augmentation ${enchere}`,
                     date: new Date(),
-                    route: surveille.enchere.id,
+                    route: `/enchere/${surveille.enchere.id}`,
                     type:"enchere"
                 }).then(response=>{
                     console.log("notification created successfully")
